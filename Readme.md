@@ -44,8 +44,8 @@ A comprehensive password generation tool for security professionals to test orga
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/company-password-generator.git
-   cd company-password-generator
+   git clone https://github.com/sbksibi/Password-Generator.git
+   cd Password-Generator
    ```
 2. (Optional) Create a virtual environment:
    ```bash
