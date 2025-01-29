@@ -152,7 +152,7 @@ If you find vulnerabilities in third-party systems:
 
 ## Repository Structure 🌳
 ```
-company-password-generator/
+Password-Generator/
 ├── password_generator.py   # Main generator script
 ├── passwords.txt           # Generated password list
 ├── README.md               # This documentation
