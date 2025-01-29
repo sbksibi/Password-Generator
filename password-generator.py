@@ -14,7 +14,6 @@ def generate_company_passwords(company_name, min_length=8):
               "July", "August", "September", "October", "November", "December",
               "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-    # Configuration lists
     common_suffixes = ["123", "1234", "!", "@123", "#", "$", "2024", str(current_year), str(next_year), "999"]
     special_chars = ["!", "@", "#", "$", "%", "&", "*", "_", "-", ".", "+", "="]
     common_prefixes = ["Welcome", "Admin", "Secure", "Pass", "Login", "Root", "User", "Staff", "System"]
