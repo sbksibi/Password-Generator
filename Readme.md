@@ -159,12 +159,3 @@ company-password-generator/
 ├── LICENSE                 # MIT License text
 └── .gitignore              # Standard Python gitignore
 ```
-
-This README provides:
-- Clear installation/usage instructions
-- Technical implementation details
-- Ethical guidelines for proper use
-- Contribution workflow
-- License information
-
-It’s designed to be both user-friendly for beginners and technically detailed for security professionals.
