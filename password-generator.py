@@ -6,114 +6,148 @@ def generate_company_passwords(company_name, min_length=8):
     if not company_name.strip():
         return []
 
+    # Temporal configurations
     current_year = datetime.now().year
+    short_year = str(current_year)[-2:]
     next_year = current_year + 1
     current_month = datetime.now().month
-    seasons = ["Winter", "Spring", "Summer", "Fall"]
-    months = ["January", "February", "March", "April", "May", "June",
-              "July", "August", "September", "October", "November", "December",
-              "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    
+    # Pattern components
+    components = {
+        'seasons': ["Winter", "Spring", "Summer", "Fall"],
+        'months': ["January", "February", "March", "April", "May", "June",
+                  "July", "August", "September", "October", "November", "December",
+                  "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        'special_chars': ["!", "@", "#", "$", "%", "&", "*", "_", "-", ".", "+", "="],
+        'tech_terms': ["Server", "Cloud", "Data", "Network", "Tech", "IT", "Dev", "Prod", "Test", "Web", "App"],
+        'number_patterns': ["1", "0", "123", "007", "2024", "2023", "100", "200", "99", "66", "1234", "888"],
+        'corporate_terms': ["Inc", "LLC", "Ltd", "Corp", "Co", "Group", "Global", "Solutions"],
+        'departments': ["HR", "IT", "Finance", "Sales", "Support", "Service", "Ops", "Dev"],
+        'keyboard_walks': ["1qaz2wsx", "1q2w3e4r", "qwerTY123", "1qaz@WSX", "zaq1@WSX"],
+        'common_passwords': ["Admin123!", "Password1", "Welcome123", "Secure@2024", "Summer2024"]
+    }
 
-    common_suffixes = ["123", "1234", "!", "@123", "#", "$", "2024", str(current_year), str(next_year), "999"]
-    special_chars = ["!", "@", "#", "$", "%", "&", "*", "_", "-", ".", "+", "="]
-    common_prefixes = ["Welcome", "Admin", "Secure", "Pass", "Login", "Root", "User", "Staff", "System"]
-    number_sequences = ["123", "1234", "12345", "123456", "999", "000", "007", "101", "777", "666"]
-    corporate_suffixes = ["Inc", "LLC", "Ltd", "Corp", "Co", "Group"]
-    department_names = ["HR", "IT", "Finance", "Admin", "Sales", "Support", "Tech", "Service"]
-    keyboard_walks = ["1qaz2wsx", "1q2w3e4r", "qwerTY123", "1qaz@WSX", "zaq1@WSX",
-                      "!QAZ2wsx", "1qazxsw2", "1qazXSW@", "2wsx3edc", "3edc4rfv"]
-
-    # Generate company base words with variations
-    company_parts = re.findall(r'\w+', company_name)
-    base_words = []
-    separators = ['', '-', '_', '.', '@', '$', '!', '%']
-
-    # Generate combined terms with separators and case variations
+    # Company name processing
+    processed_name = re.sub(r'(?<=[a-z])(?=[A-Z])', ' ', company_name)
+    company_parts = re.findall(r'\w+', processed_name)
+    
+    # Base word generation
+    base_words = set()
+    separators = ['', '-', '_', '.', '@', '$', '!', '%', '&', '*']
+    
+    # Generate base variations
     for sep in separators:
         combined = sep.join(company_parts)
         if combined:
-            base_words.append(combined.lower())
-            base_words.append(combined.upper())
-            base_words.append(combined.capitalize())
-            if len(company_parts) > 1:
-                camel_case = ''.join([part.capitalize() for part in company_parts])
-                base_words.append(camel_case)
-
-    # Add corporate suffixes and departments
-    for suffix in corporate_suffixes + department_names:
-        base_words.extend([suffix.lower(), suffix.upper(), suffix.capitalize()])
-
-    # Leet speak conversion
-    def leet_speak(text):
-        leet_map = {
-            'a': '@', 'A': '@', 'e': '3', 'E': '3',
-            'i': '1', 'I': '1', 'o': '0', 'O': '0',
-            's': '$', 'S': '$', 't': '7', 'T': '7',
-            'g': '9', 'G': '9', 'b': '8', 'B': '8'
+            # Case variations
+            variations = {
+                combined.lower(),
+                combined.upper(),
+                combined.capitalize(),
+                combined.swapcase(),
+                combined[:1].upper() + combined[1:].lower()
+            }
+            base_words.update(variations)
+            
+            # Number inserted variations
+            for num in components['number_patterns']:
+                base_words.add(f"{combined}{num}")
+                base_words.add(f"{num}{combined}")
+                base_words.add(f"{combined[:2]}{num}{combined[2:]}")
+    
+    # Acronym generation
+    def generate_acronyms(parts):
+        acronym = "".join(p[0] for p in parts)
+        return {
+            acronym.lower(),
+            acronym.upper(),
+            f"{acronym.lower()}{short_year}",
+            f"{acronym.upper()}{current_year}",
+            f"{acronym}@{current_year}",
+            f"{acronym}#{next_year}"
         }
-        return ''.join(leet_map.get(c, c) for c in text)
-
-    leet_words = [leet_speak(word) for word in base_words]
-    base_words += leet_words
-
-    # Generate passwords using itertools.product for efficiency
+    
+    acronyms = generate_acronyms(company_parts) if len(company_parts) > 1 else set()
+    base_words.update(acronyms)
+    
+    # Leet speak transformations
+    def leet_transform(text):
+        substitutions = {
+            'a': ['@', '4'], 'e': ['3'], 'i': ['1', '!'],
+            'o': ['0'], 's': ['$', '5'], 't': ['7'],
+            'g': ['9'], 'b': ['8'], 'z': ['2'],
+            'l': ['1'], 'k': ['|<'], 'm': ['^^']
+        }
+        transformed = [text]
+        for char, replacements in substitutions.items():
+            for r in replacements:
+                transformed.append(text.lower().replace(char, r))
+                transformed.append(text.upper().replace(char.upper(), r))
+        return transformed
+    
+    leet_words = set()
+    for word in base_words:
+        leet_words.update(leet_transform(word))
+    base_words.update(leet_words)
+    
+    # Password pattern generation
     passwords = set()
-
-    # Combine with suffixes/prefixes
-    for prefix, word, suffix, char in itertools.product(common_prefixes, base_words, common_suffixes, special_chars):
-        passwords.update({
-            f"{prefix}{char}{word}",
-            f"{word}{char}{suffix}",
-            f"{prefix}{word}{suffix}",
-            f"{word}{suffix}{char}"
-        })
-
-    # Date and month combinations
-    date_formats = [
-        f"{current_month:02d}{current_year}",
-        f"{current_month:02d}{next_year}",
-        f"{current_year}",
-        f"{next_year}",
-        datetime.now().strftime("%m%d%Y"),
-        datetime.now().strftime("%d%m%Y")
-    ]
-    for word, date_str in itertools.product(base_words, date_formats):
-        passwords.add(f"{word}{date_str}")
-        passwords.add(f"{word}@{date_str}")
-
-    # Seasonal and month-based passwords
-    for season, month in itertools.product(seasons, months[:12]):
-        passwords.update({
-            f"{season}{current_year}",
-            f"{month}{next_year}",
-            f"{season}@{current_year}",
-            f"{month}@{next_year}"
-        })
-
-    # Corporate and department combinations
-    for corp, dept in itertools.product(corporate_suffixes, department_names):
-        passwords.update({
-            f"{corp}{dept}{current_year}",
-            f"{dept}{corp}{next_year}",
-            f"{corp}@{dept}",
-            f"{dept}#{corp}"
-        })
-
-    # Add keyboard walks and common passwords
-    passwords.update(keyboard_walks)
-    passwords.update([
-        "admin", "administrator", "admin@123", "password", "password1",
-        "123456", "123456789", "qwerty", "abc123", "letmein", "welcome",
-        "monkey", "1234", "12345", "12345678", "football", "iloveyou",
-        "123123", "baseball", "sunshine", "ashley", "bailey", "dragon",
-        "superman", "master", "hello", "freedom", "whatever", "qazwsx",
-        "trustno1", "Password123", "Admin123!"
-    ])
-
-    # Filter by minimum length if specified
+    
+    # Core pattern generator
+    def generate_core_patterns():
+        # Acronym-based patterns
+        for acronym, term, year, sep in itertools.product(
+            acronyms,
+            components['tech_terms'] + components['departments'],
+            [str(current_year), str(next_year), short_year],
+            components['special_chars']
+        ):
+            passwords.update({
+                f"{acronym}{term}{sep}{year}",  
+                f"{term}{sep}{acronym}{year}",  
+                f"{acronym}{sep}{year}{term}",  
+                f"{term}{year}{sep}{acronym}"   
+            })
+        
+        # Mirrored patterns
+        for base, num, sep in itertools.product(
+            base_words,
+            components['number_patterns'],
+            components['special_chars']
+        ):
+            passwords.add(f"{base}{sep}{num}{sep}{base}".lower())  
+            passwords.add(f"{num}{sep}{base}{sep}{num}")           
+        
+        # Department-tech patterns
+        for dept, tech, sep in itertools.product(
+            components['departments'],
+            components['tech_terms'],
+            components['special_chars']
+        ):
+            passwords.add(f"{dept}{sep}{tech}{current_year}")  # IT@Server2024
+            passwords.add(f"{tech}{sep}{dept}{next_year}")     # Server@IT2025
+        
+        # Date-based patterns
+        date_formats = [
+            f"{current_month:02d}{current_year}",
+            f"{current_month:02d}{next_year}",
+            datetime.now().strftime("%m%y"),
+            datetime.now().strftime("%d%m%y")
+        ]
+        for word, date, sep in itertools.product(base_words, date_formats, components['special_chars']):
+            passwords.add(f"{word}{sep}{date}")  
+            passwords.add(f"{date}{sep}{word}")  
+    
+    generate_core_patterns()
+    
+    # Add additional components
+    passwords.update(components['keyboard_walks'])
+    passwords.update(components['common_passwords'])
+    
+    # Length filtering
     if min_length > 0:
         passwords = {pwd for pwd in passwords if len(pwd) >= min_length}
-
+    
     return sorted(passwords)
 
 def save_passwords(passwords, filename="passwords.txt"):
@@ -125,7 +159,10 @@ def save_passwords(passwords, filename="passwords.txt"):
 if __name__ == "__main__":
     company = input("Enter company name: ").strip()
     if not company:
-        print("Company name cannot be empty!")
+        print("Error: Company name cannot be empty!")
     else:
-        passwords = generate_company_passwords(company)
-        save_passwords(passwords)
+        try:
+            passwords = generate_company_passwords(company)
+            save_passwords(passwords)
+        except Exception as e:
+            print(f"Error generating passwords: {str(e)}")
